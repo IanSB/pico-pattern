@@ -16,7 +16,7 @@
 .wrap_target				; This loop needs to last ~64us
 
  loop_1:
-    out X, 16       [15]	; Get 16 bits from DMA via Output Shift Register (OSR) to X
+    out X, 32       [15]	; Get 32 bits from DMA via Output Shift Register (OSR) to X
     jmp !X skip_1			; If the data byte is 0, then skip to the next loop
     mov pins, X     [14]	; Move data to pins as set up in cvideo_initialise_pio
     jmp loop_1      [15]	; Loop
@@ -25,7 +25,7 @@
     irq set 4       [30]	; Set the IRQ to trigger the state machine cvideo_data
 
  loop_2:
-    out X, 16       [15]	; Get 16 bits from DMA
+    out X, 32       [15]	; Get 32 bits from DMA
     nop             [15]	; Just padding to time this out
     jmp !X loop_2   [15]	; Loop until we hit data again
 
@@ -41,7 +41,7 @@
 // - pin_base: The number of the first GPIO pin to use in the PIO
 // - pin_count: The number of consecutive GPIO pins to write to
 // - freq: The frequency of the PIO state machine
-// 
+//
 void cvideo_sync_initialise_pio(PIO pio, uint sm, uint offset, uint pin_base, uint pin_count, double freq) {
     for(uint i=pin_base; i<pin_base+pin_count; i++) {
         pio_gpio_init(pio, i);

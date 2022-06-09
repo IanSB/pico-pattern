@@ -16,15 +16,26 @@
 
 #include "config.h"
 
-#define piofreq_0 5.25f         // Clock frequence of state machine for PIO handling sync
+#define piofreq_0 5.2083f       // Clock frequency of state machine for PIO handling sync (24mhz)
 #define piofreq_1_192 9.34f
 #define piofreq_1_256 7.00f     // Clock frequency of state machine for PIO handling pixel data at various resolutions
-#define piofreq_1_320 5.6f
+#define piofreq_1_320 5.2083f   // 24Mhz
+
+
+#define piofreq_1_320_7MHZ 5.8737f
+#define piofreq_1_320_7MHZN 5.8201f
+
 #define piofreq_1_342 5.222f
-#define piofreq_1_640 2.80f
+#define piofreq_1_640 2.604f
+
+
+//#define piofreq_0 5.25f
+//#define piofreq_1_320 5.6f
+//#define piofreq_1_640 2.80f
+
 
 #define sm_sync 0               // State machine number in the PIO for the sync data
-#define sm_data 1               // State machine number in the PIO for the pixel data   
+#define sm_data 1               // State machine number in the PIO for the pixel data
 
 #if opt_colour == 0
     #define colour_base 0x10    // Start colour; for monochrome version this relates to black level voltage
@@ -37,8 +48,8 @@
     #define gpio_base   0
     #define gpio_count  5
 	#define gpio_data_count gpio_count
- 
- // For debugging you may use these values to output hsync and vsync on the same pins as the colour mode 
+
+ // For debugging you may use these values to output hsync and vsync on the same pins as the colour mode
  // as well as the normal monochrome composite sync/video
  	// #define HSLO        0x4201
     // #define HSHI        0x400d
@@ -57,7 +68,7 @@
     #define gpio_base   0
     #define gpio_count  10
 	#define gpio_data_count gpio_count
-#else
+#elif opt_colour == 2
 	#define colour_base 0x00
     #define colour_max  0x7
     #define HSLO        0x4000
@@ -71,9 +82,23 @@
 	// Setting gpio_data_count to less than gpio_count stops the data PIO writing to the bits only
 	// used for sync. Therefore the sync doesn't need to be included in the data bitmap
 	#define gpio_data_count 3
+#elif opt_colour == 3
+	#define colour_base 0x00
+    #define colour_max  0x0fff
+    #define HSLO        0x420000
+    #define HSHI        0x440000
+    #define VSLO        0x410000
+    #define VSHI        0x440000
+	// BORD must contain the sync level information as it is written by the sync PIO and not the data PIO
+    #define BORD        0x840000
+    #define gpio_base   0
+    #define gpio_count  19
+	// Setting gpio_data_count to less than gpio_count stops the data PIO writing to the bits only
+	// used for sync. Therefore the sync doesn't need to be included in the data bitmap
+	#define gpio_data_count 16
 #endif
 
-unsigned char * bitmap;
+unsigned short * bitmap;
 
 int width;
 int height;
@@ -87,4 +112,4 @@ void cvideo_pio_handler(void);
 void cvideo_dma_handler(void);
 
 void wait_vblank(void);
-void set_border(unsigned char colour);
+void set_border(unsigned short colour);

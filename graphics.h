@@ -20,19 +20,19 @@ struct Line {
     bool quad;
 };
 
-void cls(unsigned char c);
-void scroll_up(unsigned char c, int rows);
+void cls(unsigned short c);
+void scroll_up(unsigned short c, int rows);
 
-void print_char(int x, int y, int c, unsigned char bc, unsigned char fc);
-void print_string(int x, int y, char *s, unsigned char bc, unsigned char fc);
+void print_char(int x, int y, int c, unsigned short bc, unsigned short fc);
+void print_string(int x, int y, char *s, unsigned short bc, unsigned short fc);
 
-void plot(int x, int y, unsigned char c);
-void draw_line(int x1, int y1, int x2, int y2, unsigned char c);
+void plot(int x, int y, unsigned short c);
+void draw_line(int x1, int y1, int x2, int y2, unsigned short c);
 void draw_horizontal_line(int y1, int x1, int x2, int c);
-void draw_circle(int x, int y, int r, unsigned char c, bool filled);
-void draw_polygon(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, unsigned char c, bool filled);
-void draw_rect(int x1, int y1, int x2, int y2, unsigned char c, bool filled);
-void draw_triangle(int x1, int y1, int x2, int y2, int x3, int y3, unsigned char c, bool filled);
+void draw_circle(int x, int y, int r, unsigned short c, bool filled);
+void draw_polygon(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, unsigned short c, bool filled);
+void draw_rect(int x1, int y1, int x2, int y2, unsigned short c, bool filled);
+void draw_triangle(int x1, int y1, int x2, int y2, int x3, int y3, unsigned short c, bool filled);
 
 void swap(int *a, int *b);
 void init_line(struct Line *line, int x1, int y1, int x2, int y2);

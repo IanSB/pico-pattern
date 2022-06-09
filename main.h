@@ -16,7 +16,7 @@
     #define col_black   0x00
     #define col_grey    0x0C
     #define col_white   0x0F
-	// Colours are defined by their monochrome brightness according to 
+	// Colours are defined by their monochrome brightness according to
 	// Y = 0.21 R + 0.71 G + 0.072 B
 	#define col_red     3
     #define col_green   11
@@ -35,16 +35,16 @@
     #define col_magenta rgb(7,0,7)
     #define col_cyan    rgb(0,7,7)
 #else
-	#define col_black   0x0
-    #define col_white   0x7
-    #define col_red     0x1
-    #define col_green   0x2
-    #define col_blue    0x4
-    #define col_yellow  0x3
-    #define col_magenta 0x5
-    #define col_cyan    0x6
+	#define col_black   0x0000
+    #define col_white   0x0fff
+    #define col_red     0x000f
+    #define col_green   0x00f0
+    #define col_blue    0x0f00
+    #define col_yellow  0x00ff
+    #define col_magenta 0x0f0f
+    #define col_cyan    0x0ff0
 
-	
+
 #endif
 
 const uint BUTTON_PIN = 23;

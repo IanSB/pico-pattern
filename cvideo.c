@@ -25,7 +25,7 @@
 
 #include "hardware/pio.h"
 #include "hardware/dma.h"
-#include "hardware/irq.h"   
+#include "hardware/irq.h"
 
 #include "charset.h"            // The character set
 #include "cvideo.h"
@@ -44,60 +44,60 @@ uint bline;                     // Line in the bitmap to fetch
 
 uint vblank_count;              // Vblank counter
 
-unsigned char * bitmap;         // Bitmap buffer
+unsigned short * bitmap;         // Bitmap buffer
 
-int width = 320;                // Bitmap dimensions             
+int width = 320;                // Bitmap dimensions
 int height = 256;
 
 /*
  * The sync tables consist of 32 entries, each one corresponding to a 2us slice of the 64us
  * horizontal sync. The value 0x00 is reserved as a control byte for the horizontal sync;
  * cvideo_sync will not write to the GPIO for that block of 0x00's.
- * 
+ *
  * All sync pulses are active low
  */
 
 
 // Horizontal sync with gap for pixel data
 //
-unsigned short hsync[32] = {
-    HSLO, HSLO, HSHI, HSHI, HSHI, HSHI, BORD, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, BORD, BORD, BORD, BORD,
+unsigned int hsync[32] = {
+    HSLO, HSLO, HSHI, HSHI, HSHI, HSHI, BORD, BORD, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, BORD, BORD, BORD,
 };
 
 // Horizontal sync for top and bottom borders
 //
-unsigned short border[32] = {
-    HSLO, HSLO, HSHI, HSHI, HSHI, HSHI, BORD, BORD, BORD, BORD, BORD, BORD, BORD, BORD, BORD, BORD, 
-    BORD, BORD, BORD, BORD, BORD, BORD, BORD, BORD, BORD, BORD, BORD, BORD, BORD, BORD, BORD, BORD, 
+unsigned int border[32] = {
+    HSLO, HSLO, HSHI, HSHI, HSHI, HSHI, BORD, BORD, BORD, BORD, BORD, BORD, BORD, BORD, BORD, BORD,
+    BORD, BORD, BORD, BORD, BORD, BORD, BORD, BORD, BORD, BORD, BORD, BORD, BORD, BORD, BORD, BORD,
 };
 
-#if opt_colour!=2
+#if opt_colour < 2
 // Vertical sync (long/long)
 //
-unsigned short vsync_ll[32] = {
+unsigned int vsync_ll[32] = {
     VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSHI, // Long sync pulse
     VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSHI, // Long sync pulse
 };
 
 // Vertical sync (short/short)
 //
-unsigned short vsync_ss[32] = {
+unsigned int vsync_ss[32] = {
     VSLO, VSHI, VSHI, VSHI, VSHI, VSHI, VSHI, VSHI, VSHI, VSHI, VSHI, VSHI, VSHI, VSHI, VSHI, VSHI, // Short sync pulse
     VSLO, VSHI, VSHI, VSHI, VSHI, VSHI, VSHI, VSHI, VSHI, VSHI, VSHI, VSHI, VSHI, VSHI, VSHI, VSHI, // Short sync pulse
 };
 
 // Vertical sync (long/short)
 //
-unsigned short vsync_ls[32] = {
+unsigned int vsync_ls[32] = {
     VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSHI, // Long sync pulse
     VSLO, VSHI, VSHI, VSHI, VSHI, VSHI, VSHI, VSHI, VSHI, VSHI, VSHI, VSHI, VSHI, VSHI, VSHI, VSHI, // Short sync pulse
 };
 
 #else
-	
-unsigned short vsync_ll[32] = {
-    VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, 
+
+unsigned int vsync_ll[32] = {
+    VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO,
     VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO, VSLO,
 };
 
@@ -111,7 +111,7 @@ unsigned short vsync_ll[32] = {
 /*
  * The main routine sets up the whole shebang
  */
-int initialise_cvideo(void) { 
+int initialise_cvideo(void) {
     pio_0 = pio0;	                    // Assign the PIO
 
     // Load up the PIO programs
@@ -126,6 +126,8 @@ int initialise_cvideo(void) {
     bline = 0;	        // And the index into the bitmap pixel buffer to 0
     vblank_count = 0;   // And the vblank counter
 
+    bitmap = malloc(width * height * 2);            // Allocate the bitmap memory
+
 	// Initialise the first PIO (video sync)
 	//
     pio_sm_set_enabled(pio_0, sm_sync, false);	// Disable the PIO state machine
@@ -137,22 +139,25 @@ int initialise_cvideo(void) {
 		gpio_base,								// Start pin in the GPIO
 		gpio_count,								// Number of pins
 		piofreq_0								// State machine clock frequency
-	);	
+	);
+
+
+
     cvideo_configure_pio_dma(					// Configure the DMA for Sync
         pio_0,									// The PIO to attach this DMA to
         sm_sync,								// The state machine number
         dma_channel_0,							// The DMA channel
-        DMA_SIZE_16,                            // Size of each transfer
+        DMA_SIZE_32,                            // Size of each transfer
         32,										// Number of transfers to make
         cvideo_dma_handler						// The DMA handler
     );
-    pio_sm_set_enabled(pio_0, sm_sync, true);	// Enable the PIO state machine
-
-    bitmap = malloc(width * height);            // Allocate the bitmap memory
 
 	// Initialise the second PIO (pixel data)
 	//
-    cvideo_data_initialise_pio(					
+
+    pio_sm_set_enabled(pio_0, sm_data, false);	// Disable the PIO state machine
+    pio_sm_clear_fifos(pio_0, sm_data);			// Clear the PIO FIFO buffers
+    cvideo_data_initialise_pio(
 		pio_0,
 		sm_data,
 		offset_1,
@@ -164,24 +169,31 @@ int initialise_cvideo(void) {
     // Initialise the DMA for data (ie pixels)
     //
     cvideo_configure_pio_dma(
-        pio_0,	
+        pio_0,
         sm_data,
         dma_channel_1,							// On DMA channel 1
-        DMA_SIZE_8,                             // Size of each transfer
+        DMA_SIZE_16,                             // Size of each transfer
         width,									// The bitmap width - number of transfers to make
         NULL									// But there is no DMA interrupt for the pixel data
-    ); 
-    pio_sm_set_enabled(pio_0, sm_data, true);	// Enable the PIO state machine
+    );
+
 
     irq_set_exclusive_handler(					// Set up the PIO IRQ handler
 		PIO0_IRQ_0,								// The IRQ #
 		cvideo_pio_handler						// And handler routine
-	); 
+	);
     pio0_hw->inte0 = PIO_IRQ0_INTE_SM0_BITS;	// Just for IRQ 0 (triggered by irq set 0 in PIO)
-    irq_set_enabled(PIO0_IRQ_0, true);			// Enable it    
+    irq_set_enabled(PIO0_IRQ_0, true);			// Enable it
 
     set_border(0);                              // Set the border colour
-    cls(0);                                     // Clear the screen      
+    cls(0);                                     // Clear the screen
+
+
+    //pio_clkdiv_restart_sm_mask(pio_0, (1u << sm_data) | (1u << sm_sync));
+    //pio_sm_set_enabled(pio_0, sm_data, true);	// Enable the PIO state machine
+    //pio_sm_set_enabled(pio_0, sm_sync, true);	// Enable the PIO state machine
+
+    pio_enable_sm_mask_in_sync(pio_0, (1u << sm_data) | (1u << sm_sync));
 
     return 0;
 }
@@ -195,34 +207,34 @@ int set_mode(int mode) {
     wait_vblank();
 
     switch(mode) {                              // Get the video mode
-        case 1: 
+        case 1:
             width = 320;                        // Set screen width and
             dfreq = piofreq_1_320;              // pixel dot frequency accordingly
             break;
-        case 2: 
-            width = 640;                
+        case 2:
+            width = 640;
             dfreq = piofreq_1_640;
             break;
         default:
             width = 256;
             dfreq = piofreq_1_256;
-            break;            
+            break;
 
     }
 
     if(bitmap != NULL) {
         free(bitmap);
     }
-    bitmap = malloc(width * height);            // Allocate the bitmap memory
+    bitmap = malloc(width * height * 2);            // Allocate the bitmap memory
 
     cvideo_configure_pio_dma(                   // Reconfigure the DMA
-        pio_0,	
+        pio_0,
         sm_data,
         dma_channel_1,							// On DMA channel 1
-        DMA_SIZE_8,                             // Size of each transfer
+        DMA_SIZE_16,                             // Size of each transfer
         width,									// The bitmap width
         NULL									// But there is no DMA interrupt for the pixel data
-    ); 
+    );
 
     pio_0->sm[sm_data].clkdiv = (uint32_t) (dfreq * (1 << 16));
 
@@ -232,12 +244,12 @@ int set_mode(int mode) {
 // Set the border colour
 // - colour: Border colour
 //
-void set_border(unsigned char colour) {
+void set_border(unsigned short colour) {
     if(colour > colour_max) {
         return;
     }
-    unsigned short c = BORD | (colour_base + colour);
-    
+    unsigned int c = BORD | (colour_base + colour);
+
     for(int i = 6; i <32; i++) {                // Skip the first three hsync values
         if((hsync[i] & BORD) == BORD) {         // If the border bit is set in the hsync
             hsync[i] = c;                       // Then write out the new colour (with the BORD bit set)
@@ -269,14 +281,14 @@ void cvideo_pio_handler(void) {
 
 // The DMA interrupt handler
 // This feeds the state machine cvideo_sync with data for the PAL(ish) video signal
-// 
+//
 void cvideo_dma_handler(void) {
-	
+
     // Switch condition on the vertical scanline number (vline)
     // Each statement does a dma_channel_set_read_addr to point the PIO to the next data to output
     //
     switch(vline) {
-		
+
         // First deal with the vertical sync scanlines
         //
         case 1 ... 2:
@@ -299,7 +311,7 @@ void cvideo_dma_handler(void) {
 
         // Now point the dma at the first buffer for the pixel data,
         // and preload the data for the next scanline
-        // 
+        //
         default:
             dma_channel_set_read_addr(dma_channel_0, hsync, true);
             break;
@@ -314,7 +326,7 @@ void cvideo_dma_handler(void) {
 
     // Finally, clear the interrupt request ready for the next horizontal sync interrupt
     //
-    dma_hw->ints0 = 1u << dma_channel_0;	
+    dma_hw->ints0 = 1u << dma_channel_0;
 }
 
 // Configure the PIO DMA

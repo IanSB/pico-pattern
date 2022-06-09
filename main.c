@@ -4,7 +4,7 @@
 // Author:	        Dean Belfield
 // Created:	        02/02/2021
 // Last Updated:	01/03/2022
-// 
+//
 // Modinfo:
 // 04/02/2022:      Demos now set the border colour
 // 05/02/2022:      Added support for colour
@@ -19,8 +19,8 @@
 
 #include "hardware/pio.h"
 #include "hardware/dma.h"
-#include "hardware/irq.h"  
-#include "hardware/gpio.h" 
+#include "hardware/irq.h"
+#include "hardware/gpio.h"
 
 #include "graphics.h"
 #include "cvideo.h"
@@ -47,8 +47,11 @@ int main() {
 	int but_ready_for_up = false;
 	int but_up_count = 0;
 	int led_count = 0;
+
+    set_border(0x0777);
     colour_bars();
-	
+
+
 
 	while(true) {
 		sleep_ms(10);
@@ -59,7 +62,8 @@ int main() {
 			gpio_put(LED_PIN,0);
 		else
 			led_count = 0;
-			
+
+/*
 		but = gpio_get(BUTTON_PIN);
 		if (!but) {
 				if (but_ready_for_down) {
@@ -85,12 +89,14 @@ int main() {
 			if (but_ready_for_up) {
 				but_up_count = 0;
 			}
-			if (but_up_count < 2) 
+			if (but_up_count < 2)
 				but_up_count ++;
 			else
 				but_ready_for_down = true;
 			but_ready_for_up = false;
 		}
+*/
+
 	}
 }
 
@@ -132,14 +138,53 @@ void full_white() {
 }
 
 void colour_bars() {
-	const int rectw = width/8;
-	const unsigned char c[8] = {col_white, col_yellow, col_cyan, col_green, col_magenta, col_red, col_blue, col_black};
-	set_border(col_black);
-	cls(col_black);
-	for (int i =0; i<8 ; i++) {
-		draw_rect(i*rectw,0,i*rectw+rectw-1,height,c[i],1);
+	const int rectw = width/16;
+    const int height6 = 41;
+    int vstart;
+	set_border(0x777);
+	cls(0);
+ 	print_string(0, 0, "Sync = -C+H+V, Pixel Clock = 8Mhz, 12BPP", 0, 0xfff);
+	for (int i =0; i<=0x0f ; i++) {
+        int c=i^0x0f;
+        vstart = 10;
+		draw_rect(i*rectw,vstart,i*rectw+rectw-1,vstart+height6-1,i,1);
+        vstart+=height6;
+		draw_rect(i*rectw,vstart,i*rectw+rectw-1,vstart+height6-1,i << 4,1);
+        vstart+=height6;
+		draw_rect(i*rectw,vstart,i*rectw+rectw-1,vstart+height6-1,i << 8,1);
+        vstart+=height6;
+		draw_rect(i*rectw,vstart,i*rectw+rectw-1,vstart+height6-1,i | (i<<4) | (i<<8),1);
+        vstart+=height6;
+        int r = (c & 0x04) ? 0x000f : 0;
+        int g = (c & 0x08) ? 0x00f0 : 0;
+        int b = (c & 0x02) ? 0x0f00 : 0;
+		draw_rect(i*rectw,vstart,i*rectw+rectw-1,vstart+height6-1,r | g | b,1);
+        vstart+=height6;
 	}
+
+
+    for (int i=0; i<width; i+=2) {
+        draw_line(i, vstart, i, vstart+height6-1, 0xfff);
+    }
+
+
 }
+/*
+    int r,g,b;
+    vstart+=height5;
+    int hstart;
+    for (int g=0; g<16; g++) {
+        hstart=0;
+
+        for (int gb = 0; gb < 256; gb++) {
+            int r = ((gb & 0x80)>>4) | ((gb & 0x20)>>3) | ((gb & 0x08)>>2) | ((gb & 0x02)>>1);
+            int b = ((gb & 0x40)>>3) | ((gb & 0x10)>>2) | ((gb & 0x04)>>1) | ((gb & 0x01));
+            draw_rect(hstart,vstart,hstart+1,vstart+2, (b<<8) | (g<<4) | r,1);
+            hstart+=1;
+        }
+        vstart+=3;
+    }
+*/
 void test_circle() {
     set_border(col_black);
 	cls(col_green);
@@ -149,7 +194,7 @@ void test_circle() {
 	draw_line(width-1,height-1,0,height-1,col_white);
 	draw_line(0,height-1,0,0,col_white);
 	draw_circle(width/2,height/2,height/2-10,col_black,0);
-	
+
 
 }
 

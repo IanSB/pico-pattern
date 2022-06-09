@@ -19,39 +19,49 @@
 
 #include "hardware/pio.h"
 #include "hardware/dma.h"
-#include "hardware/irq.h"   
+#include "hardware/irq.h"
 
 #include "charset.h"            // The character set
 #include "cvideo.h"
 
 #include "graphics.h"
 
+void *memset16(void *m, short val, size_t count)
+{
+    short *buf = m;
+
+    while(count--) *buf++ = val;
+    return m;
+}
+
+
 // Clear the screen
 // - c: Background colour to fill screen with
 //
-void cls(unsigned char c) {
-    memset(bitmap, colour_base + c, height * width);
+
+void cls(unsigned short c) {
+    memset16(bitmap, colour_base + c, height * width);
 }
 
 // Scroll the screen up
 // - c: Background colour to fill blank area with
 // - rows: Number of pixel rows to scroll up by
 //
-void scroll_up(unsigned char c, int rows) {
-    memcpy(bitmap, &bitmap[width * rows], (height - rows) * width);
-    memset(&bitmap[width * (height - rows)], colour_base + c, rows * width);
+void scroll_up(unsigned short c, int rows) {
+    memcpy(bitmap, &bitmap[width * rows], ((height - rows) * width) * 2);
+    memset16(&bitmap[width * (height - rows)], colour_base + c, rows * width);
 }
 
 // Print a character
 // - x: X position on screen (pixels)
 // - y: Y position on screen (pixels)
 // - c: Character to print (ASCII 32 to 127)
-// - bc: Background colour 
-// - fc: Foreground colour 
+// - bc: Background colour
+// - fc: Foreground colour
 //
-void print_char(int x, int y, int c, unsigned char bc, unsigned char fc) {
+void print_char(int x, int y, int c, unsigned short bc, unsigned short fc) {
     int char_index;
-    unsigned char * ptr;
+    unsigned short * ptr;
 
     if(c >= 32 && c < 128) {
         char_index = (c - 32) * 8;
@@ -70,10 +80,10 @@ void print_char(int x, int y, int c, unsigned char bc, unsigned char fc) {
 // - x: X position on screen (pixels)
 // - y: Y position on screen (pixels)
 // - s: Zero terminated string
-// - bc: Background 
+// - bc: Background
 // - fc: Foreground colour (
 //
-void print_string(int x, int y, char *s, unsigned char bc, unsigned char fc) {
+void print_string(int x, int y, char *s, unsigned short bc, unsigned short fc) {
     for(int i = 0; i < strlen(s); i++) {
         print_char(x + i * 8, y, s[i], bc, fc);
     }
@@ -84,7 +94,7 @@ void print_string(int x, int y, char *s, unsigned char bc, unsigned char fc) {
 // - y: Y position on screen
 // - c: Pixel colour
 //
-void plot(int x, int y, unsigned char c) {
+void plot(int x, int y, unsigned short c) {
     if(x >= 0 && x < width && y >= 0 && y < height) {
         bitmap[width * y + x] = colour_base + c;
     }
@@ -100,9 +110,9 @@ void plot(int x, int y, unsigned char c) {
 // - x2, y2: Coordinates of last point
 // - c: Pixel colour
 //
-void draw_line(int x1, int y1, int x2, int y2, unsigned char c) {
+void draw_line(int x1, int y1, int x2, int y2, unsigned short c) {
     int dx, dy, sx, sy, e, xp, yp, i;
-    
+
     dx = x2 - x1;                   // Horizontal length
     dy = y2 - y1;                   // Vertical length
 
@@ -153,13 +163,13 @@ void draw_line(int x1, int y1, int x2, int y2, unsigned char c) {
 }
 
 // Draw a circle
-// - x: X Coordinate 
+// - x: X Coordinate
 // - y: Y Coordinate
 // - r: Radius
 // - c: Pixel colour
 // - filled: Set to false to draw wireframe, true for filled
 //
-void draw_circle(int x, int y, int r, unsigned char c, bool filled) {
+void draw_circle(int x, int y, int r, unsigned short c, bool filled) {
     int xp = 0;
     int yp = r;
     int d = 3 - r * 2;
@@ -170,12 +180,12 @@ void draw_circle(int x, int y, int r, unsigned char c, bool filled) {
         }
         else {
             plot(x + xp, y + yp, c);    // So use symmetry to draw a complete circle
-            plot(x + xp, y - yp, c);   
-            plot(x - xp, y + yp, c);   
-            plot(x - xp, y - yp, c);           
+            plot(x + xp, y - yp, c);
+            plot(x - xp, y + yp, c);
+            plot(x - xp, y - yp, c);
             plot(x + yp, y + xp, c);
-            plot(x + yp, y - xp, c);   
-            plot(x - yp, y + xp, c);   
+            plot(x + yp, y - xp, c);
+            plot(x - yp, y + xp, c);
             plot(x - yp, y - xp, c);
         }
         xp++;
@@ -199,7 +209,7 @@ void draw_circle(int x, int y, int r, unsigned char c, bool filled) {
 // - c: Pixel colour
 // - filled: Set to false to draw wireframe, true for filled
 //
-void draw_polygon(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, unsigned char c, bool filled) {
+void draw_polygon(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, unsigned short c, bool filled) {
     if(filled) {
         draw_triangle(x1, y1, x2, y2, x4, y4, c, true);
         draw_triangle(x2, y2, x3, y3, x4, y4, c, true);
@@ -212,7 +222,7 @@ void draw_polygon(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4
     }
 }
 
-void draw_rect(int x1, int y1, int x2, int y2, unsigned char c, bool filled) {
+void draw_rect(int x1, int y1, int x2, int y2, unsigned short c, bool filled) {
 	draw_polygon(x1,y1,x2,y1,x2,y2,x1,y2,c,filled);
 }
 
@@ -222,7 +232,7 @@ void draw_rect(int x1, int y1, int x2, int y2, unsigned char c, bool filled) {
 // - c: Pixel colour
 // - filled: Set to false to draw wireframe, true for filled
 //
-void draw_triangle(int x1, int y1, int x2, int y2, int x3, int y3, unsigned char c, bool filled) {
+void draw_triangle(int x1, int y1, int x2, int y2, int x3, int y3, unsigned short c, bool filled) {
     if(!filled) {
         draw_line(x1, y1, x2, y2, c);
         draw_line(x2, y2, x3, y3, c);
@@ -232,12 +242,12 @@ void draw_triangle(int x1, int y1, int x2, int y2, int x3, int y3, unsigned char
 
     struct Line line1;
     struct Line line2;
-    
+
     int i;
 
     //
     // First sort the points by Y ascending
-    // 
+    //
     if(y1 > y3) {       // a
         swap(&x1, &x3);
         swap(&y1, &y3);
@@ -250,7 +260,7 @@ void draw_triangle(int x1, int y1, int x2, int y2, int x3, int y3, unsigned char
         swap(&x2, &x3);
         swap(&y2, &y3);
     }
-    
+
     // Now draw the longest line (a->c) and (a->b) together
     //
     init_line(&line1, x1, y1, x3, y3);  // a
@@ -303,8 +313,8 @@ void draw_horizontal_line(int y1, int x1, int x2, int c) {
     }
 //  for(int i = x1; i <= x2; i++) {     // This is slow...
 //      plot(i, y1, c);                 // so we'll use memset to fill the line in memory
-//  }                                  
-    memset(&bitmap[width * y1 + x1], colour_base + c, x2 - x1 + 1);
+//  }
+    memset16(&bitmap[width * y1 + x1], colour_base + c, x2 - x1 + 1);
 }
 
 // Swap two numbers
@@ -332,9 +342,9 @@ void init_line(struct Line *line, int x1, int y1, int x2, int y2) {
     line->dy *= line->sy;                       // Abs DY
     line->xp = x1;                              // Start pixel coordinates
     line->yp = y1;
-    line->quad = line->dx > line->dy;           // True if line is longer than taller 
+    line->quad = line->dx > line->dy;           // True if line is longer than taller
     line->h = line->dy;
-    if(line->quad) {                   
+    if(line->quad) {
         line->e = line->dx >> 1;
         line->dy -= line->dx;
     }
@@ -364,7 +374,7 @@ void step_line(struct Line *line) {
             }
         }
     }
-    else {                        
+    else {
         line->e += line->dx;
         if(line->e > 0) {
             line->xp += line->sx;
@@ -383,7 +393,7 @@ void step_line(struct Line *line) {
 //
 void blit(const void * data, int sx, int sy, int sw, int sh, int dx, int dy) {
     void * src = (void *)data + (sw * sy) + sx;
-    void * dst = bitmap + (width * dy) + dx;
+    void * dst = bitmap + ((width * dy) + dx) * 2;
     for(int i = 0; i < sh; i++) {
         memcpy(dst, src, sw);
         dst += width;

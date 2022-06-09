@@ -8,9 +8,9 @@
 #
 cmake_minimum_required(VERSION 3.13)
 
-if (NOT PICO_SDK_PATH)
-    message(FATAL_ERROR "PICO_SDK_PATH is not set")
-endif()
+#if (NOT PICO_SDK_PATH)
+#    message(FATAL_ERROR "PICO_SDK_PATH is not set")
+#endif()
 
 # initialize the SDK based on PICO_SDK_PATH
 # note: this must happen before project()

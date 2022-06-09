@@ -1,5 +1,5 @@
 ;
-; Title:	        Pico-mposite PIO code 
+; Title:	        Pico-mposite PIO code
 ; Description:		Generate a burst of pixels to inject into the PAL(ish) video sync scaffold
 ; Author:	        Dean Belfield
 ; Created:	        31/01/2021
@@ -19,7 +19,7 @@
     mov Y, pins             ; The GPIO pins are still set to border colour, so store that in Y
 
  loop:
-    out X, 8				; Get 8 bits from DMA via Output Shift Register (OSR) to X
+    out X, 16				; Get 16 bits from DMA via Output Shift Register (OSR) to X
     mov pins, X				; Move X to pins as set up in cvideo_initialise_pio
     jmp !OSRE loop  		; Loop until no more pixel data
     mov pins, Y				; Reset the border colour
@@ -37,7 +37,7 @@
 // - pin_base: The number of the first GPIO pin to use in the PIO
 // - pin_count: The number of consecutive GPIO pins to write to
 // - freq: The frequency of the PIO state machine
-// 
+//
 void cvideo_data_initialise_pio(PIO pio, uint sm, uint offset, uint pin_base, uint pin_count, double freq) {
     for(uint i=pin_base; i<pin_base+pin_count; i++) {
         pio_gpio_init(pio, i);
