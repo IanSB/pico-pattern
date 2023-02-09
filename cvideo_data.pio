@@ -17,11 +17,12 @@
 
     wait 1 irq 4            ; Wait for IRQ 4 from cvideo_sync
     mov Y, pins             ; The GPIO pins are still set to border colour, so store that in Y
-
+    nop
  loop:
     out X, 16				; Get 16 bits from DMA via Output Shift Register (OSR) to X
     mov pins, X				; Move X to pins as set up in cvideo_initialise_pio
     jmp !OSRE loop  		; Loop until no more pixel data
+    nop
     mov pins, Y				; Reset the border colour
     irq set 0				; Trigger the PIO interrupt to set up the DMA for the next scanline
 

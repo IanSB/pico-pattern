@@ -46,8 +46,8 @@ uint vblank_count;              // Vblank counter
 
 unsigned short * bitmap;         // Bitmap buffer
 
-int width = 320;                // Bitmap dimensions
-int height = 256;
+int width = 640;                // Bitmap dimensions
+int height = 128+8;
 
 /*
  * The sync tables consist of 32 entries, each one corresponding to a 2us slice of the 64us
@@ -123,7 +123,7 @@ int initialise_cvideo(void) {
     dma_channel_1 = dma_claim_unused_channel(true);	// And one for the pixel data
 
     vline = 1;          // Initialise the video scan line counter to 1
-    bline = 0;	        // And the index into the bitmap pixel buffer to 0
+    bline = 0;	        // And the index into the bitmap pixel buffer 0
     vblank_count = 0;   // And the vblank counter
 
     bitmap = malloc(width * height * 2);            // Allocate the bitmap memory
@@ -163,7 +163,7 @@ int initialise_cvideo(void) {
 		offset_1,
 		gpio_base,
 		gpio_data_count,
-		piofreq_1_320
+		piofreq_1_640
 	);
 
     // Initialise the DMA for data (ie pixels)
@@ -272,10 +272,20 @@ void wait_vblank(void) {
 // instruction at the end of the PIO
 //
 void cvideo_pio_handler(void) {
-    if(bline >= height) {
+    int cline = 0;
+    bline++;
+    if(bline > 255) {
         bline = 0;
     }
-    dma_channel_set_read_addr(dma_channel_1, &bitmap[width * bline++], true);   // Line up the next block of pixels
+
+    if (bline > 15) {
+        cline = ((bline - 16) >> 1) + 16;
+    } else {
+        cline = bline;
+    }
+
+    dma_channel_set_read_addr(dma_channel_1, &bitmap[width * cline], true);   // Line up the next block of pixels
+
     hw_set_bits(&pio0->irq, 1u);										// Reset the IRQ
 }
 

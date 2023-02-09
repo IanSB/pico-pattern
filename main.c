@@ -32,6 +32,7 @@
 // The main loop
 //
 int main() {
+    set_sys_clock_khz(72000, false);
     initialise_cvideo();    // Initialise the composite video stuff
 	gpio_init(BUTTON_PIN);
 	if (BUTTON_PIN_PULLUP)
@@ -48,7 +49,7 @@ int main() {
 	int but_up_count = 0;
 	int led_count = 0;
 
-    set_border(0x0777);
+    //set_border(0xfff);
     colour_bars();
 
 
@@ -137,37 +138,45 @@ void full_white() {
 	cls(col_white);
 }
 
+unsigned short colour444(unsigned short r, unsigned short g, unsigned short b) {
+   return ((r << 1) | (g << 7) | (b << 12));
+}
+
 void colour_bars() {
 	const int rectw = width/16;
-    const int height6 = 41;
+    const int height6 = 20;
     int vstart;
-	set_border(0x777);
-	cls(0);
- 	print_string(0, 0, "Sync = -C+H+V, Pixel Clock = 8Mhz, 12BPP", 0, 0xfff);
+
+	cls(colour444(0,0,0));
+	set_border(colour444(4,4,4));
+    print_string(0, 0, "                         RGBtoHDMI Test Pattern Generator    ",0, colour444(15,15,15));
+ 	print_string(0, 8, "                    Sync = -C+H+V, Pixel Clock = 16Mhz, 12BPP", 0, colour444(15,15,15));
+    print_string(0, 0, "Atari ST MONO OK",0, 0x0020);
+    print_string(0, 8, "Atari ST BLANK OK",0, 0x0800);    
 	for (int i =0; i<=0x0f ; i++) {
         int c=i^0x0f;
-        vstart = 10;
-		draw_rect(i*rectw,vstart,i*rectw+rectw-1,vstart+height6-1,i,1);
+        int c2=i;
+        vstart = 16;
+		draw_rect(i*rectw,vstart,i*rectw+rectw-1,vstart+height6-1,colour444(c2,0,0),1);
         vstart+=height6;
-		draw_rect(i*rectw,vstart,i*rectw+rectw-1,vstart+height6-1,i << 4,1);
+		draw_rect(i*rectw,vstart,i*rectw+rectw-1,vstart+height6-1,colour444(0,c2,0),1);
         vstart+=height6;
-		draw_rect(i*rectw,vstart,i*rectw+rectw-1,vstart+height6-1,i << 8,1);
+		draw_rect(i*rectw,vstart,i*rectw+rectw-1,vstart+height6-1,colour444(0,0,c2),1);
         vstart+=height6;
-		draw_rect(i*rectw,vstart,i*rectw+rectw-1,vstart+height6-1,i | (i<<4) | (i<<8),1);
+		draw_rect(i*rectw,vstart,i*rectw+rectw-1,vstart+height6-1,colour444(c2,c2,c2),1);
         vstart+=height6;
-        int r = (c & 0x04) ? 0x000f : 0;
-        int g = (c & 0x08) ? 0x00f0 : 0;
-        int b = (c & 0x02) ? 0x0f00 : 0;
-		draw_rect(i*rectw,vstart,i*rectw+rectw-1,vstart+height6-1,r | g | b,1);
+        int colour = colour444((c & 0x04) ? 0x0f : 0, (c & 0x08) ? 0x0f : 0, (c & 0x02) ? 0x0f : 0);
+		draw_rect(i*rectw,vstart,i*rectw+rectw-1,vstart+height6-1, colour, 1);
         vstart+=height6;
 	}
 
 
     for (int i=0; i<width; i+=2) {
-        draw_line(i, vstart, i, vstart+height6-1, 0xfff);
+        draw_line(i, vstart, i, vstart+height6, colour444(15,15,15));
     }
 
-
+    //bitmap[0] =0xffff;
+    //bitmap[width*height - 1] =0xffff;
 }
 /*
     int r,g,b;

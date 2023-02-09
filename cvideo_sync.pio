@@ -16,18 +16,18 @@
 .wrap_target				; This loop needs to last ~64us
 
  loop_1:
-    out X, 32       [15]	; Get 32 bits from DMA via Output Shift Register (OSR) to X
+    out X, 32       [31]	; Get 32 bits from DMA via Output Shift Register (OSR) to X
     jmp !X skip_1			; If the data byte is 0, then skip to the next loop
-    mov pins, X     [14]	; Move data to pins as set up in cvideo_initialise_pio
-    jmp loop_1      [15]	; Loop
+    mov pins, X     [30]	; Move data to pins as set up in cvideo_initialise_pio
+    jmp loop_1      [31]	; Loop
 
  skip_1:
     irq set 4       [30]	; Set the IRQ to trigger the state machine cvideo_data
-
+    nop             [31]
  loop_2:
-    out X, 32       [15]	; Get 32 bits from DMA
-    nop             [15]	; Just padding to time this out
-    jmp !X loop_2   [15]	; Loop until we hit data again
+    out X, 32       [31]	; Get 32 bits from DMA
+    nop             [31]	; Just padding to time this out
+    jmp !X loop_2   [31]	; Loop until we hit data again
 
 .wrap						; Loop back to wrap_target
 

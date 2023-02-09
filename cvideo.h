@@ -16,17 +16,20 @@
 
 #include "config.h"
 
-#define piofreq_0 5.2083f       // Clock frequency of state machine for PIO handling sync (24mhz)
+#define piofreq_0 1.5f       // Clock frequency of state machine for PIO handling sync (24mhz)
 #define piofreq_1_192 9.34f
 #define piofreq_1_256 7.00f     // Clock frequency of state machine for PIO handling pixel data at various resolutions
-#define piofreq_1_320 5.2083f   // 24Mhz
+#define piofreq_1_320 3.0f   // 24Mhz
 
 
 #define piofreq_1_320_7MHZ 5.8737f
 #define piofreq_1_320_7MHZN 5.8201f
 
 #define piofreq_1_342 5.222f
-#define piofreq_1_640 2.604f
+
+#define piofreq_1_480 2.0f 
+
+#define piofreq_1_640 1.5f
 
 
 //#define piofreq_0 5.25f
@@ -84,7 +87,7 @@
 	#define gpio_data_count 3
 #elif opt_colour == 3
 	#define colour_base 0x00
-    #define colour_max  0x0fff
+    #define colour_max  0xffff
     #define HSLO        0x420000
     #define HSHI        0x440000
     #define VSLO        0x410000

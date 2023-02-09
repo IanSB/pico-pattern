@@ -28,7 +28,7 @@ void print_string(int x, int y, char *s, unsigned short bc, unsigned short fc);
 
 void plot(int x, int y, unsigned short c);
 void draw_line(int x1, int y1, int x2, int y2, unsigned short c);
-void draw_horizontal_line(int y1, int x1, int x2, int c);
+void draw_horizontal_line(int y1, int x1, int x2, unsigned short c);
 void draw_circle(int x, int y, int r, unsigned short c, bool filled);
 void draw_polygon(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, unsigned short c, bool filled);
 void draw_rect(int x1, int y1, int x2, int y2, unsigned short c, bool filled);

@@ -35,14 +35,14 @@
     #define col_magenta rgb(7,0,7)
     #define col_cyan    rgb(0,7,7)
 #else
-	#define col_black   0x0000
-    #define col_white   0x0fff
-    #define col_red     0x000f
-    #define col_green   0x00f0
-    #define col_blue    0x0f00
-    #define col_yellow  0x00ff
-    #define col_magenta 0x0f0f
-    #define col_cyan    0x0ff0
+	#define col_black   colour444(0,0,0)
+    #define col_white   colour444(15,15,15)
+    #define col_red     colour444(15,0,0)
+    #define col_green   colour444(0,15,0)
+    #define col_blue    colour444(0,0,15)
+    #define col_yellow  colour444(15,15,0)
+    #define col_magenta colour444(15,0,15)
+    #define col_cyan    colour444(0,15,15)
 
 
 #endif
@@ -54,7 +54,7 @@ const bool BUTTON_PIN_PULLUP = false;
 const uint LED_PIN = 25;
 
 int main(void);
-
+unsigned short colour444(unsigned short r, unsigned short g, unsigned short b);
 void cross(void);
 void dots(void);
 void grid(void);

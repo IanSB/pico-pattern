@@ -26,9 +26,9 @@
 
 #include "graphics.h"
 
-void *memset16(void *m, short val, size_t count)
+void *memset16(void *m, unsigned short val, size_t count)
 {
-    short *buf = m;
+    unsigned short *buf = m;
 
     while(count--) *buf++ = val;
     return m;
@@ -64,12 +64,12 @@ void print_char(int x, int y, int c, unsigned short bc, unsigned short fc) {
     unsigned short * ptr;
 
     if(c >= 32 && c < 128) {
-        char_index = (c - 32) * 8;
-        ptr = &bitmap[width * y + x + 7];
+        char_index = (c) * 8;
+        ptr = &bitmap[(width * y + x + 7)];
         for(int row = 0; row < 8; row++) {
             unsigned char data = charset[char_index + row];
             for(int bit = 0; bit < 8; bit ++) {
-                *(ptr- bit) = data & 1 << bit ? colour_base + fc : colour_base + bc;
+                *(ptr- bit) = (data & (1 << bit)) ? fc : bc;
             }
             ptr += width;
         }
@@ -96,7 +96,7 @@ void print_string(int x, int y, char *s, unsigned short bc, unsigned short fc) {
 //
 void plot(int x, int y, unsigned short c) {
     if(x >= 0 && x < width && y >= 0 && y < height) {
-        bitmap[width * y + x] = colour_base + c;
+        bitmap[width * y + x] = c;
     }
 }
 
@@ -295,7 +295,7 @@ void draw_triangle(int x1, int y1, int x2, int y2, int x3, int y3, unsigned shor
 // - X2: Second X coordinate
 // - c: Colour
 //
-void draw_horizontal_line(int y1, int x1, int x2, int c) {
+void draw_horizontal_line(int y1, int x1, int x2, unsigned short c) {
     if(x1 > x2) {                       // Always draw the line from left to right
         swap(&x2, &x1);
     }
@@ -314,7 +314,7 @@ void draw_horizontal_line(int y1, int x1, int x2, int c) {
 //  for(int i = x1; i <= x2; i++) {     // This is slow...
 //      plot(i, y1, c);                 // so we'll use memset to fill the line in memory
 //  }
-    memset16(&bitmap[width * y1 + x1], colour_base + c, x2 - x1 + 1);
+    memset16(&bitmap[width * y1 + x1], c, x2 - x1 + 1);
 }
 
 // Swap two numbers
